@@ -1,0 +1,80 @@
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+rule_files:
+  - /etc/prometheus/rules/*.yml
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets: ['alertmanager:9093']
+scrape_configs:
+  - job_name: prometheus
+    static_configs:
+      - targets: ['localhost:9090']
+  - job_name: node
+    static_configs:
+      - targets: ['192.168.56.11:9100']
+        labels: {node: controller}
+      - targets: ['192.168.56.21:9100']
+        labels: {node: network}
+      - targets: ['192.168.56.31:9100']
+        labels: {node: compute1}
+      - targets: ['192.168.56.41:9100']
+        labels: {node: storage1}
+      - targets: ['192.168.56.42:9100']
+        labels: {node: storage2}
+    relabel_configs:
+      - {source_labels: [__address__], target_label: url}
+      - {source_labels: [node], target_label: instance}
+  - job_name: ceph
+    static_configs:
+      - targets: ['192.168.56.41:9283']
+        labels: {node: storage1}
+      - targets: ['192.168.56.42:9283']
+        labels: {node: storage2}
+  - job_name: rabbitmq
+    static_configs:
+      - targets: ['192.168.56.11:15692']
+        labels: {node: controller}
+  - job_name: mysql
+    static_configs:
+      - targets: ['192.168.56.11:9104']
+        labels: {node: controller}
+  - job_name: openstack_api
+    metrics_path: /probe
+    params: {module: [http_api]}
+    static_configs:
+      - targets: ['http://192.168.56.11:5000/v3']
+        labels: {service: keystone}
+      - targets: ['http://192.168.56.11:9292/']
+        labels: {service: glance}
+      - targets: ['http://192.168.56.11:8774/']
+        labels: {service: nova}
+      - targets: ['http://192.168.56.11:8778/']
+        labels: {service: placement}
+      - targets: ['http://192.168.56.11:9696/']
+        labels: {service: neutron}
+      - targets: ['http://192.168.56.11:8776/']
+        labels: {service: cinder}
+      - targets: ['http://192.168.56.11/horizon/auth/login/']
+        labels: {service: horizon}
+    relabel_configs:
+      - {source_labels: [__address__], target_label: __param_target}
+      - {source_labels: [__param_target], target_label: url}
+      - {source_labels: [service], target_label: instance}
+      - {target_label: __address__, replacement: 'blackbox:9115'}
+  - job_name: base_tcp
+    metrics_path: /probe
+    params: {module: [tcp_connect]}
+    static_configs:
+      - targets: ['192.168.56.11:3306']
+        labels: {service: mariadb}
+      - targets: ['192.168.56.11:5672']
+        labels: {service: rabbitmq}
+      - targets: ['192.168.56.11:11211']
+        labels: {service: memcached}
+    relabel_configs:
+      - {source_labels: [__address__], target_label: __param_target}
+      - {source_labels: [__param_target], target_label: url}
+      - {source_labels: [service], target_label: instance}
+      - {target_label: __address__, replacement: 'blackbox:9115'}

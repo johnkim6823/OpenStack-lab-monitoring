@@ -22,7 +22,7 @@ scrape_configs:
       - targets: ['192.168.56.41:9100']
         labels: {node: storage1}
       - targets: ['192.168.56.42:9100']
-        labels: {node: ghost}
+        labels: {node: storage2}
     relabel_configs:
       - {source_labels: [__address__], target_label: url}
       - {source_labels: [node], target_label: instance}

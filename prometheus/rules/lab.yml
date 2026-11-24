@@ -2,7 +2,7 @@ groups:
 - name: node
   rules:
   - alert: TargetDown
-    expr: up === 0
+    expr: up == 0
     for: 1m
     labels:
       severity: critical

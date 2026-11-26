@@ -8,6 +8,13 @@ alerting:
     - static_configs:
         - targets: ['alertmanager:9093']
 scrape_configs:
+  - job_name: app_node
+    static_configs:
+      - targets: ['app:9100']
+        labels: { node: app }
+  - job_name: cadvisor
+    static_configs:
+      - targets: ['app:8080']
   - job_name: prometheus
     static_configs:
       - targets: ['localhost:9090']
